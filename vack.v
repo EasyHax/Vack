@@ -5,9 +5,7 @@ import process
 import offset
 import csgo
 
-import os
-
-#include <pthread.h>
+//#include <pthread.h>
 
 fn C.pthread_create(voidptr, voidptr, voidptr, voidptr)
 fn C.pthread_join(voidptr, voidptr)
@@ -23,12 +21,12 @@ fn wallhack( players []csgo.Player ) {
 		if player.dormant() { continue }
 
 		mut glow_t := player.get_glow()
-		health := player.health()
+		health := f32( player.health() )
 
 		if player.is_enemy() {
-			glow_t.r = f32(1 - health / 100)
-			glow_t.g = f32(health / 100)
-			glow_t.b = f32(0)
+			glow_t.r = f32( 1 - health / 100 )
+			glow_t.g = f32( health / 100 )
+			glow_t.b = f32( 0 )
 		} 
 		else {
 			glow_t.r = f32(0.3)
@@ -115,13 +113,18 @@ fn aimbot( players []csgo.Player, bone csgo.Bone, smooth_value f32, min_fov f64,
 //##############################################
 
 fn main() {
-	
+
+	/* pthread_t := &int(0)
+	C.pthread_create(pthread_t, nullptr, wallhack, nullptr)
+	C.pthread_create(pthread_t, nullptr, aimbot,   nullptr)
+	C.pthread_join  (pthread_t, nullptr) */
+
 	process.attach( 'csgo.exe' )
 	g_mem  = memory.Memory{ handle: g_proc.handle }
 	g_csgo = csgo.Csgo{}
 	offset.update()
 
-	for memory.is_key_down( memory.Vkey.delete ) {
+	for !memory.is_key_down( memory.Vkey.delete ) {
 
 		g_csgo.localplayer = g_csgo.localplayer()
 		players := g_csgo.get_players()
