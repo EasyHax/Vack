@@ -200,7 +200,7 @@ pub fn update() {
 
     println( '[~] pattern scanning signatures ..' )
 
-	offs_json := http.get( 'https://raw.githubusercontent.com/frk1/hazedumper/master/csgo.json'   ) or { panic( err ) }
+    offs_json := http.get( 'https://raw.githubusercontent.com/frk1/hazedumper/master/csgo.json'   ) or { panic( err ) }
     sigs_json := http.get( 'https://raw.githubusercontent.com/frk1/hazedumper/master/config.json' ) or { panic( err ) }
     
     offs := json.decode( Offset, offs_json.text ) or { panic( err ) }
