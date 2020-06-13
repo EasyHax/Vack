@@ -36,8 +36,8 @@ fn wallhack( players []csgo.Player ) {
 
 		glow_t.a = f32(1)
 		glow_t.when_occluded 	= true
-        glow_t.when_unoccluded 	= false
-        glow_t.full_bloom 		= false
+        	glow_t.when_unoccluded 	= false
+        	glow_t.full_bloom 		= false
 
 		player.set_glow( glow_t )
 		
