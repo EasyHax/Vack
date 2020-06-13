@@ -5,29 +5,29 @@ module process
 __global g_proc Process
 
 struct C.tagPROCESSENTRY32W {
-	dwSize 				u64
-	cntUsage 			u64
-	th32ProcessID 		u64
-	th32DefaultHeapID 	voidptr
-	th32ModuleID 		u64
-	cntThreads 			u64
-	th32ParentProcessID u64
-	pcPriClassBase 		i64
-    dwFlags 			u64
-	szExeFile 			charptr
+	dwSize			u64
+	cntUsage		u64
+	th32ProcessID		u64
+	th32DefaultHeapID	voidptr
+	th32ModuleID		u64
+	cntThreads		u64
+	th32ParentProcessID 	u64
+	pcPriClassBase		i64
+	dwFlags			u64
+	szExeFile		charptr
 }
 
 struct C.tagMODULEENTRY32W {
-	dwSize 				u64
-    th32ModuleID 		u64
-    th32ProcessID 		u64
-	GlblcntUsage 		u64
-	ProccntUsage 		u64
-    modBaseAddr 		byteptr
-    modBaseSize 		u64
-    hModule 			voidptr
-    szModule 			charptr
-    szExePath 			charptr
+	dwSize		u64
+	th32ModuleID	u64
+	th32ProcessID	u64
+	GlblcntUsage	u64
+	ProccntUsage	u64
+	modBaseAddr	byteptr
+	modBaseSize	u64
+	hModule		voidptr
+	szModule	charptr
+	szExePath	charptr
 }
 
 fn C.OpenProcess( int, int, u64 ) int
