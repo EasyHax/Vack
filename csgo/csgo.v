@@ -270,21 +270,21 @@ pub struct Vector {
 
 pub struct Glow_t {
 	pub mut:
-	pad0[4]			byte
-	r 				f32
-	g 				f32
-	b 				f32
-	a 				f32
-	pad1[16]		byte
+	pad0[4]		byte
+	r 		f32
+	g 		f32
+	b 		f32
+	a 		f32
+	pad1[16]	byte
 	when_occluded 	bool
 	when_unoccluded bool
-	full_bloom 		bool
+	full_bloom 	bool
 }
 
 pub enum Bone
 {
-    head 		= 8
-    body 		= 6
+    head 	= 8
+    body 	= 6
     right_hand 	= 39
     left_hand 	= 13
     right_leg 	= 73
