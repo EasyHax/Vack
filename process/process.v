@@ -106,7 +106,7 @@ pub fn get_module_info( pid u64, module_name string ) Module {
 			return Module{ 
 				base: 	int( me32.modBaseAddr ), 
 				size: 	int( me32.modBaseSize ), 
-				handle: int( me32.hModule ) 
+				handle: int( me32.hModule     ) 
 			}
 		}
 	}
@@ -141,7 +141,7 @@ fn load_modules( pid u64 ) map[string]Module {
 		mods[mod_name] = Module{ 
 			base: 	int( me32.modBaseAddr ), 
 			size: 	int( me32.modBaseSize ), 
-			handle: int( me32.hModule ) 
+			handle: int( me32.hModule     ) 
 		}
 
 		//mods[mod_name] = int( me32.modBaseAddr )
@@ -156,17 +156,17 @@ pub fn attach( process_name string ) {
 	g_proc.pid = find_pid( process_name )
 	g_proc.handle = C.OpenProcess( C.PROCESS_ALL_ACCESS, 0, g_proc.pid )
 
-	g_proc.modules["engine.dll"			] = get_module_info( g_proc.pid, "engine.dll" 		)
-	g_proc.modules["client.dll"			] = get_module_info( g_proc.pid, "client.dll" 		)
+	g_proc.modules["engine.dll"		] = get_module_info( g_proc.pid, "engine.dll" 		)
+	g_proc.modules["client.dll"		] = get_module_info( g_proc.pid, "client.dll" 		)
 	g_proc.modules["vstdlib.dll"		] = get_module_info( g_proc.pid, "vstdlib.dll" 		)
-	g_proc.modules["shaderapidx9.dll"	] = get_module_info( g_proc.pid, "shaderapidx9.dll" )
+	g_proc.modules["shaderapidx9.dll"	] = get_module_info( g_proc.pid, "shaderapidx9.dll" 	)
 }
 
 pub fn left_click() {
 	
 	C.mouse_event( MouseEventFlags.leftdown, 0, 0, 0, 0)
-    C.Sleep(1)
-    C.mouse_event( MouseEventFlags.leftup, 0, 0, 0, 0)
+	C.Sleep(1)
+	C.mouse_event( MouseEventFlags.leftup, 0, 0, 0, 0)
 }
 
 enum MouseEventFlags
