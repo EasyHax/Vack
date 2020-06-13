@@ -14,8 +14,8 @@ CSGO External hack written in V
 
   * Get V [here](https://github.com/vlang/v)
 
-  * $ v vack.v --enable-globals, run vack.exe
-  * $ v run vack.v --enable-globals
+  * $ **v vack.v --enable-globals**, run **vack.exe**
+  * $ **v run vack.v --enable-globals**
 
 #### TODO 
 
