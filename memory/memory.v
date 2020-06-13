@@ -139,7 +139,7 @@ pub fn ( m Memory ) scan_pattern_from_buffer( buffer []byte, signature string ) 
 
 pub enum Vkey
 {
-	leftbutton         = 0x01
+    leftbutton         = 0x01
     rightbutton        = 0x02
     cancel             = 0x03
     middlebutton       = 0x04
