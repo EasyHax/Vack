@@ -12,7 +12,7 @@ CSGO External hack written in V
 
 #### Usage
 
-  * Get V [here](https://github.com/vlang/v)
+  * Get V [here](https://github.com/vlang/v/blob/master/README.md#installing-v-from-source)
 
   * $ **v vack.v --enable-globals**, run **vack.exe**
   * $ **v run vack.v --enable-globals**
