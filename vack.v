@@ -4,6 +4,8 @@ import memory
 import process
 import offset
 import csgo
+import os
+import json
 
 // #include <pthread.h>
 fn C.pthread_create(arg_1, arg_2, arg_3, arg_4 voidptr)
@@ -39,8 +41,8 @@ fn wallhack(players []csgo.Player) {
 }
 
 // ##############################################
-fn triggerbot(vkey memory.Vkey) {
-	if !memory.is_key_down(vkey) {
+fn triggerbot(trigger Triggerbot) {
+	if !memory.is_key_down(trigger.key) {
 		return
 	}
 
@@ -48,13 +50,14 @@ fn triggerbot(vkey memory.Vkey) {
 	en := g_csgo.player_by_index(id)
 
 	if en.is_alive() && en.is_enemy() {
+		C.Sleep(trigger.delay)
 		process.left_click()
 	}
 }
 
 // ##############################################
-fn aimbot(players []csgo.Player, bone csgo.Bone, smooth_value f32, min_fov f64, vkey memory.Vkey) {
-	if !memory.is_key_down(vkey) {
+fn aimbot(players []csgo.Player, aimbot Aimbot) {
+	if !memory.is_key_down(aimbot.key) {
 		return
 	}
 
@@ -68,11 +71,11 @@ fn aimbot(players []csgo.Player, bone csgo.Bone, smooth_value f32, min_fov f64, 
 	for player in players {
 		if !player.is_spotted() { continue }
 
-		aim_to := player.bone_pos(bone)
+		aim_to := player.bone_pos(aimbot.bone)
 		mut angle := aim_from.angle_with(aim_to)
 		en_fov := (vec_view + aimpunch).fov_with(angle)
 		
-		if en_fov < min_fov {
+		if en_fov < aimbot.fov {
 			fovs << en_fov
 			vecs << angle
 		}
@@ -87,9 +90,9 @@ fn aimbot(players []csgo.Player, bone csgo.Bone, smooth_value f32, min_fov f64, 
 			best_fov_index = i
 		}
 	}
-	if best_fov < min_fov {
+	if best_fov != 999 {
 		mut angle := vecs[best_fov_index] - aimpunch
-		mut angle = angle.smooth_from(vec_view, smooth_value)
+		mut angle = angle.smooth_from(vec_view, aimbot.smooth)
 
 		angle.clamp()
 		g_csgo.set_view_angles(angle)
@@ -98,6 +101,12 @@ fn aimbot(players []csgo.Player, bone csgo.Bone, smooth_value f32, min_fov f64, 
 
 // ##############################################
 fn main() {
+
+	init()
+
+	mut raw_settings := os.read_file('config.cfg') or { panic(err) }
+	settings := json.decode(Settings, raw_settings) or { panic(err) }
+
 	/*
 	pthread_t := &int(0)
 	C.pthread_create(pthread_t, nullptr, wallhack, nullptr)
@@ -119,7 +128,41 @@ fn main() {
 		enemies := g_csgo.get_enemies_from(players)
 
 		wallhack(players)
-		aimbot(enemies, csgo.Bone.head, 10, 5, memory.Vkey.v)
-		triggerbot(memory.Vkey.rightbutton)
+		aimbot(enemies, settings.aimbot)
+		triggerbot(	settings.trigger)
 	}
+}
+
+fn init() int {
+
+	if !os.exists('config.cfg') {
+
+		raw_settings := '{\n\t"_NOTE": "{key} use VirtualKey Enum : check it here [https://docs.microsoft.com/en-us/uwp/api/windows.system.virtualkey]",' +
+		                '\n\n\t"_BONES": "head: 8 body: 6 right_hand: 39 left_hand: 13 right_leg: 73 left_leg: 66 right_foot: 74 left_foot: 67",'         +
+		                '\n\n\t"aimbot":\n\t{\n\t\t"key": 86,\n\t\t"smooth": 10,\n\t\t"fov": 5,\n\t\t"bone": 8\n\t},'                                     +
+		                '\n\n\t"trigger":\n\t{\n\t\t"key": 2,\n\t\t"delay": 0\n\t}\n}'
+		
+		mut file := os.create('config.cfg') or { panic(err)  }
+
+		file.write(raw_settings)
+		file.close()
+	}
+	return 1
+}
+
+struct Triggerbot {
+	key memory.Vkey
+	delay int
+}
+
+struct Aimbot {
+	key 	memory.Vkey
+	smooth 	f32
+	fov 	f64
+	bone 	csgo.Bone
+}
+
+struct Settings {
+	aimbot 	Aimbot
+	trigger Triggerbot
 }
