@@ -20,5 +20,5 @@ CSGO External hack written in V
 #### TODO 
 
   * Bhop
-  * Triggerbot delay
+  * Triggerbot delay - done
   * Multithreading
