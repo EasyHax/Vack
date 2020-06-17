@@ -31,11 +31,11 @@ struct C.tagMODULEENTRY32W {
 fn C.OpenProcess(arg_1, arg_2 int, arg_3 u64) int
 fn C.CreateToolhelp32Snapshot(arg_1, arg_2 int) voidptr
 
-fn C.Process32First(arg_1, arg_2 voidptr) int
-fn C.Process32Next (arg_1, arg_2 voidptr) int
+fn C.Process32FirstW(arg_1, arg_2 voidptr) bool
+fn C.Process32NextW (arg_1, arg_2 voidptr) bool
 
-fn C.Module32First(arg_1, arg_2 voidptr) int
-fn C.Module32Next (arg_1, arg_2 voidptr) int
+fn C.Module32FirstW(arg_1, arg_2 voidptr) bool
+fn C.Module32NextW (arg_1, arg_2 voidptr) bool
 
 fn C.mouse_event(arg_1, arg_2, arg_3, arg_4 u64, arg_5 voidptr)
 
@@ -53,45 +53,38 @@ pub mut:
 	modules map[string]Module
 }
 
-pub fn find_pid(process_name string) u64 {
-	pe32 := C.tagPROCESSENTRY32W{
-		dwSize: sizeof(C.tagPROCESSENTRY32W)
-	}
+pub fn find_pid(name string) u64 {
+
+	pe32 := C.tagPROCESSENTRY32W{dwSize: sizeof(C.tagPROCESSENTRY32W)}
 	th32 := C.CreateToolhelp32Snapshot(C.TH32CS_SNAPPROCESS, 0)
-	if th32 == -1 || C.Process32First(th32, &pe32) == 0 {
-		panic('tlhelp32 error')
+
+	if th32 == C.INVALID_HANDLE_VALUE || !C.Process32FirstW(th32, &pe32) {
+		panic('error copying the first entry of the process list to the buffer')
 	}
-	for C.Process32Next(th32, &pe32) != 0 {
-		mut chars := []byte{}
-		p_str := pe32.szExeFile
-		for i := 0; byte(*byteptr(int(p_str) + i)) != 0; i += 2 {
-			chars << byte(*byteptr(int(p_str) + i))
-		}
-		if string(chars).contains(process_name) {
+	for C.Process32NextW(th32, &pe32) {
+		pname := string_from_wide(pe32.szExeFile)
+		if pname == name {
 			C.CloseHandle(th32)
 			return pe32.th32ProcessID
 		}
 	}
-	panic('$process_name is not running')
+
+	panic('$name is not running')
 }
 
 pub fn get_module_info(pid u64, module_name string) Module {
-	me32 := C.tagMODULEENTRY32W{
-		dwSize: sizeof(C.tagMODULEENTRY32W)
-	}
+	me32 := C.tagMODULEENTRY32W{dwSize: sizeof(C.tagMODULEENTRY32W)}
 	th32 := C.CreateToolhelp32Snapshot(C.TH32CS_SNAPMODULE, pid)
-	if th32 == -1 || C.Module32First(th32, &me32) == 0 {
+
+	if th32 == -1 || !C.Module32FirstW(th32, &me32) {
 		panic('tlhelp32 error')
 	}
-	for C.Module32Next(th32, &me32) != 0 {
-		mut chars := []byte{}
-		p_str := me32.szModule
-		for i := 0; byte(*byteptr(int(p_str) + i)) != 0; i += 2 {
-			chars << byte(*byteptr(int(p_str) + i))
-		}
-		mod_name := string(chars)
-		if mod_name.starts_with(module_name) {
+
+	for C.Module32NextW(th32, &me32) {
+		if string_from_wide(me32.szModule) == module_name {
+
 			C.CloseHandle(th32)
+			
 			return Module{
 				base: int(me32.modBaseAddr)
 				size: int(me32.modBaseSize)
@@ -104,29 +97,19 @@ pub fn get_module_info(pid u64, module_name string) Module {
 
 fn load_modules(pid u64) map[string]Module {
 	mut mods := map[string]Module{}
-	me32 := C.tagMODULEENTRY32W{
-		dwSize: sizeof(C.tagMODULEENTRY32W)
-	}
+	me32 := C.tagMODULEENTRY32W{dwSize: sizeof(C.tagMODULEENTRY32W)}
 	th32 := C.CreateToolhelp32Snapshot(C.TH32CS_SNAPMODULE, pid)
-	if th32 == -1 || C.Module32First(th32, &me32) == 0 {
+	if th32 == -1 || !C.Module32FirstW(th32, &me32) {
 		panic('tlhelp32 error')
 	}
-	for C.Module32Next(th32, &me32) != 0 {
-		mut chars := []byte{}
-		p_str := me32.szModule
-		for i := 0; byte(*byteptr(int(p_str) + i)) != 0; i += 2 {
-			chars << byte(*byteptr(int(p_str) + i))
-		}
-		mod_name := string(chars)
-		if !mod_name.ends_with('.dll') {
-			continue
-		}
+	for C.Module32NextW(th32, &me32) {
+		mod_name := string_from_wide(me32.szModule)
+
 		mods[mod_name] = Module{
-			base: int(me32.modBaseAddr)
-			size: int(me32.modBaseSize)
+			base:   int(me32.modBaseAddr)
+			size:   int(me32.modBaseSize)
 			handle: int(me32.hModule)
 		}
-		// mods[mod_name] = int( me32.modBaseAddr )
 	}
 	C.CloseHandle(th32)
 	return mods
