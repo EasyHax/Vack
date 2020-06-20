@@ -19,6 +19,8 @@ CSGO External hack written in V
 
 #### TODO 
 
-  * Bhop
+  * Bhop - done
   * Triggerbot delay - done
-  * Multithreading
+  * Multithreading - done
+  * Optimizations
+  * Keybinds
