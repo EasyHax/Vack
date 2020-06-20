@@ -7,7 +7,7 @@ import csgo
 import os
 import json
 
-// #include <pthread.h>
+#include <pthread.h>
 fn C.pthread_create(arg_1, arg_2, arg_3, arg_4 voidptr)
 fn C.pthread_join(arg_1, arg_2 voidptr)
 
@@ -36,22 +36,36 @@ fn wallhack(players []csgo.Player) {
 		glow_t.full_bloom      = false
 		
 		player.set_glow(glow_t)
-		C.Sleep(1)
 	}
 }
 
 // ##############################################
-fn triggerbot(trigger Triggerbot) {
-	if !memory.is_key_down(trigger.key) {
-		return
+fn bunnyhp() {
+	for {
+		if !memory.is_key_down(memory.Vkey.space) {
+			continue
+		}
+
+		if g_csgo.localplayer.flag() == 257 {
+			g_csgo.jump()
+		}
 	}
+}
 
-	id := g_csgo.localplayer.crosshair_id()
-	en := g_csgo.player_by_index(id)
+// ##############################################
+fn trigger(trigger &Triggerbot) {
+	for {
+		if !memory.is_key_down(trigger.key) {
+			continue
+		}
 
-	if en.is_alive() && en.is_enemy() {
-		C.Sleep(trigger.delay)
-		process.left_click()
+		id := g_csgo.localplayer.crosshair_id()
+		en := g_csgo.player_by_index(id)
+
+		if en.is_alive() && en.is_enemy() {
+			C.Sleep(trigger.delay)
+			process.left_click()
+		}
 	}
 }
 
@@ -107,18 +121,16 @@ fn main() {
 	mut raw_settings := os.read_file('config.cfg') or { panic(err) }
 	settings := json.decode(Settings, raw_settings) or { panic(err) }
 
-	/*
-	pthread_t := &int(0)
-	C.pthread_create(pthread_t, nullptr, wallhack, nullptr)
-	C.pthread_create(pthread_t, nullptr, aimbot,   nullptr)
-	C.pthread_join  (pthread_t, nullptr)
-	*/
-
 	process.attach('csgo.exe')
 	g_mem = memory.Memory{handle: g_proc.handle}
 	g_csgo = csgo.Csgo{}
 
 	offset.update()
+
+	pthread_t := &int(0)
+	C.pthread_create(pthread_t, nullptr, bunnyhp, nullptr)
+	C.pthread_create(pthread_t, nullptr, trigger, &settings.trigger)
+	//C.pthread_join  (pthread_t, nullptr)
 
 	for !memory.is_key_down(memory.Vkey.delete) {
 
@@ -129,7 +141,8 @@ fn main() {
 
 		wallhack(players)
 		aimbot(enemies, settings.aimbot)
-		triggerbot(	settings.trigger)
+
+		C.Sleep(5)
 	}
 }
 
