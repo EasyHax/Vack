@@ -43,6 +43,10 @@ pub fn (csgo Csgo) player_by_index(index int) Player {
 	return Player{memory.read<int>(csgo.entity_list() + 0x10 * index)}
 }
 
+pub fn (csgo Csgo) jump() {
+	memory.write<int>(csgo.client() + g_sgn['dwForceJump'], 6)
+}
+
 pub fn (csgo Csgo) get_view_angles() Vector {
 	return memory.read<Vector>(csgo.clientstate() + g_sgn['dwClientState_ViewAngles'])
 }
@@ -67,6 +71,9 @@ pub fn (csgo Csgo) get_enemies() []Player {
 
 	for i in 0 .. csgo.max_players() {
 		player := csgo.player_by_index(i)
+		if player.addr == 0 {
+			break
+		}
 		if player.is_alive() && player.is_enemy() {
 			players << player
 		}
@@ -79,6 +86,9 @@ pub fn (csgo Csgo) get_players() []Player {
 
 	for i in 0 .. csgo.max_players() {
 		player := csgo.player_by_index(i)
+		if player.addr == 0 {
+			break
+		}
 		if player.is_alive() {
 			players << player
 		}
@@ -97,6 +107,10 @@ pub fn (p Player) is_alive() bool {
 
 pub fn (p Player) is_spotted() bool {
 	return memory.read<int>(p.addr + g_ntv.m_bspottedbymask) != 0
+}
+
+pub fn (p Player) flag() int {
+	return memory.read<int>(p.addr + g_ntv.m_fflags)
 }
 
 pub fn (p Player) team() int {
