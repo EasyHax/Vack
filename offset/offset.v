@@ -213,7 +213,8 @@ pub fn update() {
 		'dwClientState_MaxPlayer' ,
 		'dwGlowObjectManager'     ,
 		'dwEntityList'            ,
-		'dwClientState'
+		'dwClientState'           ,
+		'dwForceJump'
 	]
     
 	for sig in sigs.signatures {
