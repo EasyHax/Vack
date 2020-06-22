@@ -4,14 +4,11 @@ import memory
 import process
 import offset
 import csgo
+
 import os
 import json
 
-#include <pthread.h>
-fn C.pthread_create(arg_1, arg_2, arg_3, arg_4 voidptr)
-fn C.pthread_join(arg_1, arg_2 voidptr)
 
-__global nullptr voidptr = voidptr(0)
 // ##############################################
 fn wallhack(players []csgo.Player) {
 
@@ -40,9 +37,9 @@ fn wallhack(players []csgo.Player) {
 }
 
 // ##############################################
-fn bunnyhp() {
+fn bunnyhop(bunnyhop Bunnyhop) {
 	for {
-		if !memory.is_key_down(memory.Vkey.space) {
+		if !memory.is_key_down(bunnyhop.key) {
 			continue
 		}
 
@@ -53,7 +50,7 @@ fn bunnyhp() {
 }
 
 // ##############################################
-fn trigger(trigger &Triggerbot) {
+fn trigger(trigger Triggerbot) {
 	for {
 		if !memory.is_key_down(trigger.key) {
 			continue
@@ -118,19 +115,19 @@ fn main() {
 
 	init()
 
-	mut raw_settings := os.read_file('config.cfg') or { panic(err) }
+	mut raw_settings := os.read_file('config.cfg') or  { panic(err) }
 	settings := json.decode(Settings, raw_settings) or { panic(err) }
 
 	process.attach('csgo.exe')
+
 	g_mem = memory.Memory{handle: g_proc.handle}
 	g_csgo = csgo.Csgo{}
 
 	offset.update()
 
-	pthread_t := &int(0)
-	C.pthread_create(pthread_t, nullptr, bunnyhp, nullptr)
-	C.pthread_create(pthread_t, nullptr, trigger, &settings.trigger)
-	//C.pthread_join  (pthread_t, nullptr)
+	go trigger (settings.trigger )
+	go bunnyhop(settings.bunnyhop)
+
 
 	for !memory.is_key_down(memory.Vkey.delete) {
 
@@ -153,7 +150,8 @@ fn init() int {
 		raw_settings := '{\n\t"_NOTE": "{key} use VirtualKey Enum : check it here [https://docs.microsoft.com/en-us/uwp/api/windows.system.virtualkey]",' +
 		                '\n\n\t"_BONES": "head: 8 body: 6 right_hand: 39 left_hand: 13 right_leg: 73 left_leg: 66 right_foot: 74 left_foot: 67",'         +
 		                '\n\n\t"aimbot":\n\t{\n\t\t"key": 86,\n\t\t"smooth": 10,\n\t\t"fov": 5,\n\t\t"bone": 8\n\t},'                                     +
-		                '\n\n\t"trigger":\n\t{\n\t\t"key": 2,\n\t\t"delay": 0\n\t}\n}'
+		                '\n\n\t"trigger":\n\t{\n\t\t"key": 2,\n\t\t"delay": 0\n\t},'                                                                      +
+						'\n\n\t"bunnyhop":\n\t{\n\t\t"key": 32\n\t}\n}'
 		
 		mut file := os.create('config.cfg') or { panic(err)  }
 
@@ -161,6 +159,10 @@ fn init() int {
 		file.close()
 	}
 	return 1
+}
+
+struct Bunnyhop {
+	key memory.Vkey
 }
 
 struct Triggerbot {
@@ -178,4 +180,5 @@ struct Aimbot {
 struct Settings {
 	aimbot 	Aimbot
 	trigger Triggerbot
+	bunnyhop Bunnyhop
 }
